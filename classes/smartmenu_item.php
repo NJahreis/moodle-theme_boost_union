@@ -76,6 +76,11 @@ class smartmenu_item {
      * @var int
      */
     const TYPEDIVIDER = 4;
+    /**
+     * Represents the type of a dynamic element.
+     * @var int
+     */
+    const TYPEPLACEHOLDER = 5;
 
     /**
      * Represents the completion status of an item where the status is 'enrolled'.
@@ -887,6 +892,47 @@ class smartmenu_item {
     }
 
     /**
+     * Generate the dynamic link replacing placeholders with values,
+     *
+     * @return stdclass
+     */
+    protected function generate_placeholder_item() {
+        global $USER, $COURSE, $PAGE;
+
+        static $placeholders = null;
+
+        if (strpos($this->item->title, '{' ) !== false || strpos($this->item->url, '{' ) !== false) {
+            if ($placeholders == null) {
+                $placeholders = ['courseid' => (isset($COURSE->id) ? $COURSE->id : ''),
+                                'courseshortname' => (isset($COURSE->shortname) ? $COURSE->shortname : ''),
+                                'editingtoggle' => ($PAGE->user_is_editing() ? 'off' : 'on'),
+                                'userid' => (isset($USER->id) ? $USER->id : ''),
+                                'userusername' => (isset($USER->username) ? $USER->username : ''),
+                                'pagecontextid' => (is_object($PAGE->context) ? $PAGE->context->id : ''),
+                                'pagepath' => (is_object($PAGE->url) ? $PAGE->url->out_as_local_url() : ''),
+                                'sesskey' => sesskey(),
+                                ];
+            }
+        }
+        #debugging(print_r($placeholders, true));
+        $placeholdertitle = $this->item->title;
+        $placeholderurl = $this->item->url;
+        foreach ($placeholders as $search => $replace) {
+            $placeholdertitle = str_replace('{' . $search . '}', $replace, $placeholdertitle);
+            $placeholderurl = str_replace('{' . $search . '}', $replace, $placeholderurl);
+        }
+
+        $placeholderurl = new \moodle_url($placeholderurl);
+
+        return $this->generate_node_data(
+            $placeholdertitle, // Title.
+            $placeholderurl, // URL.
+            null,
+            $this->item->tooltip, // Tooltip.
+        );
+    }
+
+    /**
      * Given some text and an ideal length, this function truncates the text based on words count.
      *
      * @param string $text text to be shortened
@@ -1206,14 +1252,15 @@ class smartmenu_item {
         $class[] = $this->get_textposition_class();
 
         // Add menu item class.
+        // Menu item class.
         $types = [
             self::TYPESTATIC => 'static',
             self::TYPEDYNAMIC => 'dynamic',
             self::TYPEHEADING => 'heading',
             self::TYPEDOCS => 'docs',
             self::TYPEDIVIDER => 'divider',
+            self::TYPEPLACEHOLDER => 'placeholder',
         ];
-
         $class[] = 'menu-item-'.($types[$this->item->type] ?? '');
 
         // Add classes to item data.
@@ -1253,7 +1300,7 @@ class smartmenu_item {
             case self::TYPEDYNAMIC:
                 $result = $this->generate_dynamic_item();
                 $type = 'dynamic';
-                $cacheable = true;
+                $cacheable = false;
                 break;
 
             case self::TYPEDIVIDER:
@@ -1261,6 +1308,12 @@ class smartmenu_item {
                 $result = [$divider]; // Return the result as recursive array useful to merge with dynamic items.
                 $type = 'divider';
                 $cacheable = true;
+                break;
+                
+            case self::TYPEPLACEHOLDER:
+                $result = $this->generate_placeholder_item();
+                $type = 'placeholder';
+                $cacheable = false;
                 break;
 
             case self::TYPEHEADING:
@@ -1273,6 +1326,7 @@ class smartmenu_item {
         endswitch;
 
         // If cachable save the items cache.
+        // Save the items cache.
         if ($cacheable) {
             $this->cache->set($cachekey, $result);
         }
@@ -1540,6 +1594,7 @@ class smartmenu_item {
                 self::TYPEDOCS => get_string('smartmenusmenuitemtypedocs', 'theme_boost_union'),
                 self::TYPEDYNAMIC => get_string('smartmenusmenuitemtypedynamiccourses', 'theme_boost_union'),
                 self::TYPEDIVIDER => get_string('smartmenusmenuitemtypedivider', 'theme_boost_union'),
+                self::TYPEPLACEHOLDER => get_string('smartmenusmenuitemtypeplaceholder', 'theme_boost_union'),
         ];
 
         return ($type !== null && isset($types[$type])) ? $types[$type] : $types;

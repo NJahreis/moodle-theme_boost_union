@@ -1558,6 +1558,7 @@ $string['smartmenusmenuitemtypedynamiccourses'] = 'Dynamic courses';
 $string['smartmenusmenuitemtypeheading'] = 'Heading';
 $string['smartmenusmenuitemtypedivider'] = 'Divider';
 $string['smartmenusmenuitemtypestatic'] = 'Static';
+$string['smartmenusmenuitemtypeplaceholder'] = 'Placeholder';
 $string['smartmenusmenuitemurl'] = 'Menu item URL';
 $string['smartmenusmenuitemurl_help'] = 'The static URL for the menu item. This is the link that will be followed when the menu item is clicked.';
 $string['smartmenusmenulocation'] = 'Menu location(s)';

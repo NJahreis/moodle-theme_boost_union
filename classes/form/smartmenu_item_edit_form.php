@@ -101,7 +101,7 @@ class smartmenu_item_edit_form extends \moodleform {
         // Add menu item URL (for the static menu item type) as input element.
         $mform->addElement('text', 'url', get_string('smartmenusmenuitemurl', 'theme_boost_union'));
         $mform->setType('url', PARAM_URL);
-        $mform->hideIf('url', 'type', 'neq', smartmenu_item::TYPESTATIC);
+        $mform->hideIf('url', 'type', 'in', [smartmenu_item::TYPEDYNAMIC, smartmenu_item::TYPEHEADING]);
         $mform->addHelpButton('url', 'smartmenusmenuitemurl', 'theme_boost_union');
 
         // Add mode as select element.
@@ -556,8 +556,8 @@ class smartmenu_item_edit_form extends \moodleform {
             }
         }
 
-        // If the menu item type is static.
-        if ($data['type'] == smartmenu_item::TYPESTATIC) {
+        // If the menu item type is static or uses placeholders.
+        if (($data['type'] == smartmenu_item::TYPESTATIC) || ($data['type'] == smartmenu_item::TYPEPLACEHOLDER)) {
             // Verify that the URL field is not empty.
             if (empty($data['url'])) {
                 $errors['url'] = get_string('required');

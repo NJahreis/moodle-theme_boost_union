@@ -313,7 +313,7 @@ class primary extends \core\navigation\output\primary {
                 $usermenu['submenus'][] = (object) $submenu;
                 // The key of this submenu which helps later to include its children after including the necessary data.
                 $lastkey = array_key_last($usermenu['submenus']);
-
+                debugging(print_r($children, true));
                 // Update the dividers item type.
                 array_walk($children, function(&$value) use (&$usermenu, $menu) {
                     if (isset($value['divider'])) {
